@@ -78,9 +78,16 @@ public class ThreeIconsHandler {
 	
 	private ArrayList<String> getIconNamesForFingerprint(String fingerprint, ArrayList<String> allIconNames) 
 	{
-		ArrayList<String> randomIconNames = getRandomIconNames(3, allIconNames);
-		//TODO This needs to cache (with 24h expiry) and extract image if available 
-		return randomIconNames;
+		ArrayList<String> imagesForFingerprint = VisualizeFingerprintController.getIconNamesForFingerprint(fingerprint);
+		if (imagesForFingerprint.isEmpty())
+		{
+			ArrayList<String> randomIconNames = getRandomIconNames(3, allIconNames);
+			VisualizeFingerprintController.updateCache(fingerprint, randomIconNames);
+
+			return randomIconNames;
+		}
+	
+		return imagesForFingerprint;
 	}
 	
 	private ArrayList<String> getRandomIconNames(int number, ArrayList<String> allImageNames) 

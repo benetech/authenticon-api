@@ -4,8 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Set;
 
+import org.apache.commons.collections4.map.PassiveExpiringMap;
 import org.benetech.authenticon.api.encoders.threeicons.ThreeIconsHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,6 +25,36 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class VisualizeFingerprintController {
+
+	private static final long MILLIS_PER_HOUR = 3600000;
+	private static final long EXPIRE_IN_24_HOUR = 24; 
+	private static final long EXPIRE_TIME_IN_MILLIS = EXPIRE_IN_24_HOUR * MILLIS_PER_HOUR;
+	private static PassiveExpiringMap<String, ArrayList<String>> fingerprintToImageNamesCache;
+	
+	static {
+		fingerprintToImageNamesCache = new PassiveExpiringMap<>(EXPIRE_TIME_IN_MILLIS);
+	}
+	
+	public static PassiveExpiringMap<String, ArrayList<String>> getFingerprintToIconCache()
+	{
+		return fingerprintToImageNamesCache;
+	}
+	
+	public static void updateCache(String key, ArrayList<String> imageNames)
+	{
+		fingerprintToImageNamesCache.put(key, imageNames);
+	}
+	
+	public static ArrayList<String> getIconNamesForFingerprint(String fingerprint) 
+	{
+		PassiveExpiringMap<String, ArrayList<String>> fingerprintToImageNamesCache = getFingerprintToIconCache();
+		if (fingerprintToImageNamesCache.containsKey(fingerprint)) {
+			System.out.println("INFO: Fingerprint was reuse from cache.  Fingerprint = " + fingerprint);
+			return fingerprintToImageNamesCache.get(fingerprint);
+		}
+				
+		return new ArrayList<String>();
+	}
 	
 	@CrossOrigin
 	@RequestMapping(value = {"/"}, method = RequestMethod.GET, produces = {"image/png; application/json; charset=UTF-8"})
