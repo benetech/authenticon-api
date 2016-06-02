@@ -1,25 +1,22 @@
 package org.benetech.authenticon.api.encoders.iconmap;
 
 import java.awt.Color;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
 import org.json.JSONObject;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import sun.awt.image.ToolkitImage;
 
-abstract public class AbstractIconMapHandler {
+abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 
 	private static final int COLUMN_COUNT = 4;
 	private static final int IMAGE_WIDTH = 90;
@@ -86,24 +83,6 @@ abstract public class AbstractIconMapHandler {
 		return new ByteArrayInputStream(byteArray);
 	}
 
-	private BufferedImage createResultsImage(ArrayList<String> imageFileNames) {
-		int resultImageWidth = (COLUMN_COUNT * IMAGE_WIDTH) + (BUFFER_BETWEEN_ICONS * COLUMN_COUNT);
-		int imageCount = imageFileNames.size();
-		int roundedUpNumberOfRows = (int) Math.ceil((double)imageCount / COLUMN_COUNT);
-		int resultImageHeight = (roundedUpNumberOfRows * IMAGE_HEIGHT) + (BUFFER_BETWEEN_ICONS * roundedUpNumberOfRows);
-		
-		return new BufferedImage(resultImageWidth, resultImageHeight, BufferedImage.TYPE_INT_ARGB);
-	}
-	
-	private ToolkitImage getScaledDownBufferedImage(String iconFileName) throws IOException {
-		ClassPathResource classPathResource = new ClassPathResource("/icon-map/icons/" + iconFileName);
-		InputStream inputStream = classPathResource.getInputStream();
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
-		inputStream.close();
-		
-		return (ToolkitImage) bufferedImage.getScaledInstance(IMAGE_WIDTH, IMAGE_HEIGHT, Image.SCALE_SMOOTH);
-	}
-	
 	private ArrayList<String> generateIconFileNames(int iconCount) {
 		ArrayList<String> iconFileNames = new ArrayList<>();
 		for (int index = 0; index < iconCount; ++index) {
