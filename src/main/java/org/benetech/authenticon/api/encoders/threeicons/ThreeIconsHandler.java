@@ -1,29 +1,18 @@
 package org.benetech.authenticon.api.encoders.threeicons;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.imageio.ImageIO;
-
 import org.benetech.authenticon.api.VisualizeFingerprintController;
+import org.benetech.authenticon.api.encoders.iconmap.AbstractIconMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import sun.awt.image.ToolkitImage;
-
-public class ThreeIconsHandler {
+public class ThreeIconsHandler extends AbstractIconMapper {
 
 	public ResponseEntity<?> visualizeIcons(String methodUrl, JSONObject encodingMethod, String fingerprint, String part) throws Exception 
 	{
@@ -114,48 +103,14 @@ public class ThreeIconsHandler {
 				return uniqueRandomeImageName;
 		}
 	}
-	
-	private InputStream renderSingleImageFromPaths(ArrayList<String> imageFileNames) throws Exception
-	{
-		final int NUMBER_OF_COLUMNS = 3;
-		final int BUFFER_BETWEEN_ICONS = 15;
 
-		BufferedImage result = new BufferedImage(480, 480, BufferedImage.TYPE_INT_ARGB);
-		Graphics g = result.getGraphics();
-
-		int x = 0; 
-		int y = 0;
-		for (String iconFileName : imageFileNames) 
-		{
-			ToolkitImage scaledDownImage = getScaledDownBufferedImage(iconFileName);
-			g.drawImage(scaledDownImage, x, y, Color.WHITE, null);
-			
-			int moveXByAmount = result.getWidth() / NUMBER_OF_COLUMNS;
-			x += moveXByAmount;
-			
-			boolean shouldCreateNewRow = x > result.getWidth();
-			if(shouldCreateNewRow){
-				x = 0;
-				y += scaledDownImage.getHeight();
-				y += BUFFER_BETWEEN_ICONS;
-			}
-		}
-		
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		ImageIO.write(result, "png", outputStream);
-
-		byte[] byteArray = outputStream.toByteArray();
-		outputStream.close();
-		
-		return new ByteArrayInputStream(byteArray);
+	@Override
+	protected String getIconDirectory() {
+		return "/3icons/icons/";
 	}
 
-	private ToolkitImage getScaledDownBufferedImage(String iconFileName) throws IOException {
-		ClassPathResource classPathResource = new ClassPathResource("/3icons/icons/" + iconFileName);
-		InputStream inputStream = classPathResource.getInputStream();
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
-		inputStream.close();
-		
-		return (ToolkitImage) bufferedImage.getScaledInstance(150, 180, Image.SCALE_SMOOTH);
-	}
+	@Override
+	protected int getImageColumnCount() {
+		return 3;
+	}	
 }
