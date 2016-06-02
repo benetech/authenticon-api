@@ -18,20 +18,20 @@
       "description":"Makes 10 icons from each four digits of the fingerprint.",
       "parts":10,
       "type":"image",
-      "url":"encoders/icon-map/10icons NEEDS A HANDLER?group=4"
+      "url":"encoders/iconmap/10IconMapHandler"
    },
    "14icons":{
       "name":"14 icons",
       "description":"Makes 14 icons from each three digits of the fingerprint.",
       "parts":14,
       "type":"image",
-      "url":"encoders/icon-map/14icons NEEDs A HANDLER?group=3"
+      "url":"encoders/iconmap/14IconMapHandler"
    },
    "liang":{
       "name":"Liang hierarchy",
       "description":"Makes three progressively longer sequences to be checked so that faiures are spotted sooner.",
       "parts":3,
       "type":"text",
-      "url":"encoders/liang NEEDS A HANDLER"
+      "url":"encoders/iconmap/LiangHandler"
    }
 }

@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
+import org.benetech.authenticon.api.encoders.iconmap.IconMap10GroupsHandler;
+import org.benetech.authenticon.api.encoders.iconmap.IconMap14GroupsHandler;
+import org.benetech.authenticon.api.encoders.liang.LiangHandler;
 import org.benetech.authenticon.api.encoders.threeicons.ThreeIconsHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -60,8 +63,10 @@ public class VisualizeFingerprintController {
 	@RequestMapping(value = {"/"}, method = RequestMethod.GET, produces = {"image/png; application/json; charset=UTF-8"})
     public @ResponseBody ResponseEntity<?> visualizeFingerprint(@RequestParam(value="method", required=false) String method,
     												 			@RequestParam(value="fingerprint", required=false) String fingerprint,
+    												 			@RequestParam(value="cols", required=false) String cols,
     												 			@RequestParam(value="part", required=false) String part) throws Exception
 	{
+		
 		if (fingerprint == null && method == null && part == null) {			
 			return ResponseEntity
 					.ok()
@@ -124,6 +129,15 @@ public class VisualizeFingerprintController {
 		//TODO should be redirecting to match PHP
 		if (methodUrl.startsWith("encoders/threeicons/ThreeIconsHandler"))
 			return new ThreeIconsHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
+		
+		if (methodUrl.startsWith("encoders/iconmap/10IconMapHandler"))
+			return new IconMap10GroupsHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
+		
+		if (methodUrl.startsWith("encoders/iconmap/14IconMapHandler"))
+			return new IconMap14GroupsHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
+		
+		if (methodUrl.startsWith("encoders/iconmap/LiangHandler"))
+			return new LiangHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
 
 		return ResponseEntity.noContent().build(); 
 	}

@@ -1,0 +1,159 @@
+package org.benetech.authenticon.api.encoders.iconmap;
+
+import java.awt.Color;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
+
+import org.json.JSONObject;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import sun.awt.image.ToolkitImage;
+
+abstract public class AbstractIconMapHandler {
+
+	private static final int COLUMN_COUNT = 4;
+	private static final int IMAGE_WIDTH = 90;
+	private static final int IMAGE_HEIGHT = 75;
+	private static final int BUFFER_BETWEEN_ICONS = 20;
+
+	public ResponseEntity<?> visualizeIcons(String methodUrl, JSONObject encodingMethod, String fingerprint, String part) throws Exception {
+
+		int groupCount = calculateNumberOfGroups(fingerprint);
+		ArrayList<String> allIconFileNames = generateIconFileNames(10000);
+		ArrayList<String> groupedFingerprint = getFingerprintGroups(fingerprint, groupCount);
+		ArrayList<String> matchingIconFilenames = matchGroupToIconFilename(allIconFileNames, groupedFingerprint);
+		
+		InputStream imageInputStream = renderSingleImageFromPaths(matchingIconFilenames);
+
+		return ResponseEntity
+				.ok()
+				.contentLength(imageInputStream.available())
+				.contentType(MediaType.IMAGE_PNG)
+				.body(new InputStreamResource(imageInputStream));
+	}
+
+	private int calculateNumberOfGroups(String fingerprint) {
+		return (int) Math.ceil((double)fingerprint.length() / getMappingCount());
+	}
+	
+	private ArrayList<String> matchGroupToIconFilename(ArrayList<String> allIconFileNames, ArrayList<String> groupedFingerprints) {
+		ArrayList<String> matchingFileNames = new ArrayList<>();
+		for (int index = 0; index < groupedFingerprints.size(); ++index) {			
+			String iconName = groupedFingerprints.get(index);
+			String iconFilename = String.format("%04d.png", Integer.parseInt(iconName));
+			matchingFileNames.add(iconFilename);
+		}
+		
+		return matchingFileNames;
+	}
+
+	private InputStream renderSingleImageFromPaths(ArrayList<String> imageFileNames) throws Exception {
+		BufferedImage resultImage = createResultsImage(imageFileNames);
+		int x = 0; 
+		int y = 0;
+		for (String iconFileName : imageFileNames) 
+		{
+			ToolkitImage scaledDownImage = getScaledDownBufferedImage(iconFileName);
+			resultImage.getGraphics().drawImage(scaledDownImage, x, y, Color.WHITE, null);
+			
+			int moveXByAmount = resultImage.getWidth() / COLUMN_COUNT;
+			x += moveXByAmount;
+			
+			boolean shouldCreateNewRow = (x + scaledDownImage.getWidth()) > resultImage.getWidth();
+			if(shouldCreateNewRow){
+				x = 0;
+				y += scaledDownImage.getHeight();
+				y += BUFFER_BETWEEN_ICONS;
+			}
+		}
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		ImageIO.write(resultImage, "png", outputStream);
+
+		byte[] byteArray = outputStream.toByteArray();
+		outputStream.close();
+		
+		return new ByteArrayInputStream(byteArray);
+	}
+
+	private BufferedImage createResultsImage(ArrayList<String> imageFileNames) {
+		int resultImageWidth = (COLUMN_COUNT * IMAGE_WIDTH) + (BUFFER_BETWEEN_ICONS * COLUMN_COUNT);
+		int imageCount = imageFileNames.size();
+		int roundedUpNumberOfRows = (int) Math.ceil((double)imageCount / COLUMN_COUNT);
+		int resultImageHeight = (roundedUpNumberOfRows * IMAGE_HEIGHT) + (BUFFER_BETWEEN_ICONS * roundedUpNumberOfRows);
+		
+		return new BufferedImage(resultImageWidth, resultImageHeight, BufferedImage.TYPE_INT_ARGB);
+	}
+	
+	private ToolkitImage getScaledDownBufferedImage(String iconFileName) throws IOException {
+		ClassPathResource classPathResource = new ClassPathResource("/icon-map/icons/" + iconFileName);
+		InputStream inputStream = classPathResource.getInputStream();
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		inputStream.close();
+		
+		return (ToolkitImage) bufferedImage.getScaledInstance(IMAGE_WIDTH, IMAGE_HEIGHT, Image.SCALE_SMOOTH);
+	}
+	
+	private ArrayList<String> generateIconFileNames(int iconCount) {
+		ArrayList<String> iconFileNames = new ArrayList<>();
+		for (int index = 0; index < iconCount; ++index) {
+			String iconFileName = String.format("%04d.png", index);
+			iconFileNames.add(iconFileName);
+		}
+		
+		return iconFileNames;
+	}
+
+	private ArrayList<String> getFingerprintGroups(String fingerprint, int groupCount) throws Exception {
+		String paddedFingerprint = padFingerprintToBeCreateEventNumberedGroups(fingerprint, groupCount);		
+		ArrayList<String> fingerprintGroups = splitFingerprintIntoGroups(paddedFingerprint, groupCount);
+		
+		verifyGroupingWasSuccessfull(paddedFingerprint, fingerprintGroups);
+
+		return fingerprintGroups;
+	}
+
+	private void verifyGroupingWasSuccessfull(String paddedFingerprint, ArrayList<String> fingerprintGroups) throws Exception {
+		StringBuffer assembledFromGroupsFingerprint = new StringBuffer(); 
+		for (String fingerprintGroup : fingerprintGroups) {
+			assembledFromGroupsFingerprint.append(fingerprintGroup);
+		}
+		
+		if (!paddedFingerprint.equals(assembledFromGroupsFingerprint.toString()))
+			throw new Exception("Fingerprint was not grouped correctly.  Padded fingerprint= " + paddedFingerprint + " assmebled fingerprint = " + assembledFromGroupsFingerprint);
+	}
+
+	private String padFingerprintToBeCreateEventNumberedGroups(String fingerprint, int groupCount) {
+		int numberOfGroups = (int)Math.ceil((double)fingerprint.length() / groupCount);
+		final String PADDING_VALUE = "0";
+		while (fingerprint.length() < (numberOfGroups * groupCount)) {
+			fingerprint = fingerprint + PADDING_VALUE;
+		}
+		
+		return fingerprint;
+	}
+
+	private ArrayList<String> splitFingerprintIntoGroups(String fingerprint, int groupCount) {
+		int start = 0;
+		ArrayList<String> groups = new ArrayList<>();
+		while (start < fingerprint.length()) {
+			String subFingerprint = fingerprint.substring(start, start + groupCount);
+			groups.add(subFingerprint);
+			start += groupCount;
+		}
+		
+		return groups;
+	}
+	
+	abstract protected int getMappingCount();	
+}
