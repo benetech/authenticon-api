@@ -104,6 +104,11 @@ abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 		
 		return groups;
 	}
+
+	@Override
+	protected String getIconDirectory() {
+		return "/icon-map/icons/";
+	}
 	
 	@Override
 	protected int getImageColumnCount() {

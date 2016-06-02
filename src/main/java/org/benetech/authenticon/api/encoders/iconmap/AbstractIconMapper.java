@@ -60,13 +60,15 @@ abstract public class AbstractIconMapper {
 	}
 	
 	private ToolkitImage getScaledDownBufferedImage(String iconFileName) throws IOException {
-		ClassPathResource classPathResource = new ClassPathResource("/icon-map/icons/" + iconFileName);
+		ClassPathResource classPathResource = new ClassPathResource(getIconDirectory() + iconFileName);
 		InputStream inputStream = classPathResource.getInputStream();
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
 		inputStream.close();
 		
 		return (ToolkitImage) bufferedImage.getScaledInstance(IMAGE_WIDTH, IMAGE_HEIGHT, Image.SCALE_SMOOTH);
 	}
+
+	abstract protected String getIconDirectory();
 	
 	abstract protected int getImageColumnCount();
 }
