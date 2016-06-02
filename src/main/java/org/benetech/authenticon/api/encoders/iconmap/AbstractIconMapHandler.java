@@ -54,35 +54,6 @@ abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 		return matchingFileNames;
 	}
 
-	private InputStream renderSingleImageFromPaths(ArrayList<String> imageFileNames) throws Exception {
-		BufferedImage resultImage = createResultsImage(imageFileNames);
-		int x = 0; 
-		int y = 0;
-		for (String iconFileName : imageFileNames) 
-		{
-			ToolkitImage scaledDownImage = getScaledDownBufferedImage(iconFileName);
-			resultImage.getGraphics().drawImage(scaledDownImage, x, y, Color.WHITE, null);
-			
-			int moveXByAmount = resultImage.getWidth() / COLUMN_COUNT;
-			x += moveXByAmount;
-			
-			boolean shouldCreateNewRow = (x + scaledDownImage.getWidth()) > resultImage.getWidth();
-			if(shouldCreateNewRow){
-				x = 0;
-				y += scaledDownImage.getHeight();
-				y += BUFFER_BETWEEN_ICONS;
-			}
-		}
-		
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		ImageIO.write(resultImage, "png", outputStream);
-
-		byte[] byteArray = outputStream.toByteArray();
-		outputStream.close();
-		
-		return new ByteArrayInputStream(byteArray);
-	}
-
 	private ArrayList<String> generateIconFileNames(int iconCount) {
 		ArrayList<String> iconFileNames = new ArrayList<>();
 		for (int index = 0; index < iconCount; ++index) {
