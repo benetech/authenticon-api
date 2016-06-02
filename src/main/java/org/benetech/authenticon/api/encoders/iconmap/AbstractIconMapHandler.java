@@ -105,5 +105,10 @@ abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 		return groups;
 	}
 	
+	@Override
+	protected int getImageColumnCount() {
+		return COLUMN_COUNT;
+	}
+	
 	abstract protected int getMappingCount();	
 }

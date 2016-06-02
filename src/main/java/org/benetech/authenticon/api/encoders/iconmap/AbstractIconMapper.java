@@ -17,7 +17,6 @@ import sun.awt.image.ToolkitImage;
 
 abstract public class AbstractIconMapper {
 
-	private static final int COLUMN_COUNT = 4;
 	private static final int IMAGE_WIDTH = 90;
 	private static final int IMAGE_HEIGHT = 75;
 	private static final int BUFFER_BETWEEN_ICONS = 20;
@@ -31,7 +30,7 @@ abstract public class AbstractIconMapper {
 			ToolkitImage scaledDownImage = getScaledDownBufferedImage(iconFileName);
 			resultImage.getGraphics().drawImage(scaledDownImage, x, y, Color.WHITE, null);
 			
-			int moveXByAmount = resultImage.getWidth() / COLUMN_COUNT;
+			int moveXByAmount = resultImage.getWidth() / getImageColumnCount();
 			x += moveXByAmount;
 			
 			boolean shouldCreateNewRow = (x + scaledDownImage.getWidth()) > resultImage.getWidth();
@@ -52,9 +51,9 @@ abstract public class AbstractIconMapper {
 	}
 	
 	private BufferedImage createResultsImage(ArrayList<String> imageFileNames) {
-		int resultImageWidth = (COLUMN_COUNT * IMAGE_WIDTH) + (BUFFER_BETWEEN_ICONS * COLUMN_COUNT);
+		int resultImageWidth = (getImageColumnCount() * IMAGE_WIDTH) + (BUFFER_BETWEEN_ICONS * getImageColumnCount());
 		int imageCount = imageFileNames.size();
-		int roundedUpNumberOfRows = (int) Math.ceil((double)imageCount / COLUMN_COUNT);
+		int roundedUpNumberOfRows = (int) Math.ceil((double)imageCount / getImageColumnCount());
 		int resultImageHeight = (roundedUpNumberOfRows * IMAGE_HEIGHT) + (BUFFER_BETWEEN_ICONS * roundedUpNumberOfRows);
 		
 		return new BufferedImage(resultImageWidth, resultImageHeight, BufferedImage.TYPE_INT_ARGB);
@@ -68,4 +67,6 @@ abstract public class AbstractIconMapper {
 		
 		return (ToolkitImage) bufferedImage.getScaledInstance(IMAGE_WIDTH, IMAGE_HEIGHT, Image.SCALE_SMOOTH);
 	}
+	
+	abstract protected int getImageColumnCount();
 }
