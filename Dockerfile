@@ -1,8 +1,3 @@
-FROM frolvlad/alpine-oraclejdk8:slim
+FROM 814633283276.dkr.ecr.us-east-1.amazonaws.com/tomcat:8-jdk8
 
-MAINTAINER Nima Ansari <nimaa@benetech.org>
-
-VOLUME /tmp
-ADD authenticon-api-0.0.1-SNAPSHOT.war app.jar
-RUN sh -c 'touch /app.jar'
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+COPY file.war /usr/local/tomcat/webapps/ROOT.war
