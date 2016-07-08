@@ -19,8 +19,8 @@ apply plugin: 'war'
 
 
 war {
-	baseName = 'authenticon-api'
-	version = '0.0.1-SNAPSHOT'
+	baseName = 'file'
+	version = ''
 }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
