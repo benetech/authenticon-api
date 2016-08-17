@@ -47,7 +47,7 @@ abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 		ArrayList<String> matchingFileNames = new ArrayList<>();
 		for (int index = 0; index < groupedFingerprints.size(); ++index) {			
 			String iconName = groupedFingerprints.get(index);
-			String iconFilename = String.format("%04d.png", Integer.parseInt(iconName));
+			String iconFilename = String.format("%04d.png", Integer.parseInt(iconName,16));
 			matchingFileNames.add(iconFilename);
 		}
 		
