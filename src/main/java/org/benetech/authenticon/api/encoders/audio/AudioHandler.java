@@ -1,7 +1,5 @@
-package org.benetech.authenticon.api.encoders.liang;
+package org.benetech.authenticon.api.encoders.audio;
 
-import java.util.Base64;
-import java.util.Base64.Encoder;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -22,6 +20,7 @@ public class AudioHandler {
 
 	public ResponseEntity<?> visualizeIcons(String methodUrl, JSONObject encodingMethod, String fingerprint, String part) throws Exception 
 	{
+		fingerprint = padFingerprint(fingerprint,3);
 		byte[] bytesOfMessage = fingerprint.getBytes("UTF-8");
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		byte[] digest = md.digest(bytesOfMessage);
@@ -30,14 +29,26 @@ public class AudioHandler {
 		BigDecimal bigDecX = new BigDecimal(bigIntX);
 		BigDecimal bigDecY = new BigDecimal(bigIntY);
 		BigDecimal res = bigDecX.divide(bigDecY,5,RoundingMode.HALF_UP);
-		Double hashtext = res.doubleValue();
-
+		Double hashMul = res.doubleValue()*1000;
+		
+		String htmlout = "<p class=\"lead\">Press Below to Play Audio Sample</p><button class=\"btn btn-primary btn-lg\" onclick=\"play(\'"+fingerprint+"\',"+hashMul+")\">Play Sound</button>";
 
 		return ResponseEntity
 				.ok()
 		        .contentType(MediaType.parseMediaType("text/html"))
-		        .body("<h1>"+fingerprint+" "+(hashtext*1000)+"</h1>");
+		        .body(htmlout);
 
+	}
+	
+	private String padFingerprint(String fingerprint, int groupCount) {
+		int remainder = (int) fingerprint.length() % groupCount;
+		if (remainder == 1) {
+			fingerprint = new StringBuilder(fingerprint).insert(fingerprint.length()-1, "00").toString();
+		} else if (remainder == 2) {
+			fingerprint = new StringBuilder(fingerprint).insert(fingerprint.length()-2, "0").toString();
+		}
+		
+		return fingerprint.toUpperCase();
 	}
 }
 	

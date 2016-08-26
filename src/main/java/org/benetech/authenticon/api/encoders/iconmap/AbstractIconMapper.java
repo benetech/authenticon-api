@@ -22,28 +22,8 @@ abstract public class AbstractIconMapper {
 	private static final int IMAGE_WIDTH = 100;
 	private static final int IMAGE_HEIGHT = 100;
 	private static final int BUFFER_BETWEEN_ICONS = 10;
+	private static final int TEXT_SPACE = 17;
 	
-	protected InputStream renderSingleImageFromPaths(ArrayList<String> imageFileNames, String methodUrl) throws Exception {
-		BufferedImage resultImage = createResultsImage(imageFileNames);
-		int x = 0; 
-		int y = 0;
-		int imageCount = imageFileNames.size();
-		for (int i = 0; i < imageCount; i++) 
-		{
-			BufferedImage scaledDownImage = getScaledDownBufferedImage(imageFileNames.get(i));
-			x = (i%(getImageColumnCount()))*(IMAGE_WIDTH+BUFFER_BETWEEN_ICONS);	
-			y = ((int) Math.floor((double)i/getImageColumnCount())*(scaledDownImage.getHeight()+BUFFER_BETWEEN_ICONS));	
-			resultImage.getGraphics().drawImage(scaledDownImage, x, y, Color.WHITE, null);
-		}
-		
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		ImageIO.write(resultImage, "png", outputStream);
-
-		byte[] byteArray = outputStream.toByteArray();
-		outputStream.close();
-		
-		return new ByteArrayInputStream(byteArray);
-	}
 	
 	protected InputStream renderSingleImageFromPaths(ArrayList<String> imageFileNames, String methodUrl, ArrayList<String> iconDescs) throws Exception {
 		BufferedImage resultImage = createResultsImage(imageFileNames);
@@ -54,17 +34,16 @@ abstract public class AbstractIconMapper {
 		{
 			BufferedImage scaledDownImage = getScaledDownBufferedImage(imageFileNames.get(i));
 			x = (i%(getImageColumnCount()))*(IMAGE_WIDTH+BUFFER_BETWEEN_ICONS);	
-			y = ((int) Math.floor((double)i/getImageColumnCount())*(scaledDownImage.getHeight()+BUFFER_BETWEEN_ICONS));	
+			y = ((int) Math.floor((double)i/getImageColumnCount())*(scaledDownImage.getHeight()+BUFFER_BETWEEN_ICONS+TEXT_SPACE));	
 			resultImage.getGraphics().drawImage(scaledDownImage, x, y, Color.WHITE, null);
 			Graphics2D g2d = resultImage.createGraphics();
 	        g2d.drawImage(resultImage, 0, 0, null);
-	        g2d.setPaint(Color.blue);
-	        g2d.setFont(new Font("SansSerif", Font.BOLD, 12));
+	        g2d.setPaint(Color.white);
+	        g2d.setFont(new Font("SansSerif", Font.PLAIN, 14));
 	        String s = iconDescs.get(i);
 	        FontMetrics fm = g2d.getFontMetrics();
-	        int tx = fm.stringWidth(s);
-	        int ty = fm.getMaxDescent();
-	        g2d.drawString(s, x+(IMAGE_WIDTH)-tx, y+IMAGE_HEIGHT-ty);
+	        int tx = fm.stringWidth(s)/2;
+	        g2d.drawString(s, x+((IMAGE_WIDTH/2)-tx), y+IMAGE_HEIGHT+14);
 	        g2d.dispose();
 		}
 		
@@ -82,9 +61,9 @@ abstract public class AbstractIconMapper {
 		int resultImageWidth = (getImageColumnCount() * IMAGE_WIDTH) + (BUFFER_BETWEEN_ICONS * (getImageColumnCount()-1));
 		int imageCount = imageFileNames.size();
 		int roundedUpNumberOfRows = (int) Math.ceil((double)imageCount / getImageColumnCount());
-		int resultImageHeight = (roundedUpNumberOfRows * IMAGE_HEIGHT) + (BUFFER_BETWEEN_ICONS * (roundedUpNumberOfRows-1));
+		int resultImageHeight = (roundedUpNumberOfRows * IMAGE_HEIGHT) + (BUFFER_BETWEEN_ICONS * (roundedUpNumberOfRows));
 		
-		return new BufferedImage(resultImageWidth, resultImageHeight, BufferedImage.TYPE_INT_ARGB);
+		return new BufferedImage(resultImageWidth, resultImageHeight+(roundedUpNumberOfRows*TEXT_SPACE), BufferedImage.TYPE_INT_ARGB);
 	}
 	
 	private BufferedImage getScaledDownBufferedImage(String iconFileName) throws IOException {

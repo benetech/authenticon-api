@@ -17,8 +17,8 @@ abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 		ArrayList<String> allIconFileNames = generateIconFileNames(10000);
 		ArrayList<String> groupedFingerprint = getFingerprintGroups(fingerprint, groupCount);
 		ArrayList<String> matchingIconFilenames = matchGroupToIconFilename(allIconFileNames, groupedFingerprint);
-		
-		InputStream imageInputStream = renderSingleImageFromPaths(matchingIconFilenames, methodUrl);
+		ArrayList<String> fingerprintChunks = splitFingerprintIntoGroups(fingerprint, groupCount);
+		InputStream imageInputStream = renderSingleImageFromPaths(matchingIconFilenames, methodUrl,fingerprintChunks);
 
 		return ResponseEntity
 				.ok()
@@ -82,9 +82,17 @@ abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 		int start = 0;
 		ArrayList<String> groups = new ArrayList<>();
 		while (start < fingerprint.length()) {
-			String subFingerprint = fingerprint.substring(start, start + groupCount);
-			groups.add(subFingerprint);
-			start += groupCount;
+			if (start+groupCount < fingerprint.length())
+			{
+				String subFingerprint = fingerprint.substring(start, start + groupCount);
+				groups.add(subFingerprint);
+				start += groupCount;
+			}
+			else {
+				String subFingerprint = fingerprint.substring(start, fingerprint.length());
+				groups.add(subFingerprint);
+				start = fingerprint.length();
+			}
 		}
 		
 		return groups;

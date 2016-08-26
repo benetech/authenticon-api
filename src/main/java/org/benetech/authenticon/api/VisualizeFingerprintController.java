@@ -8,9 +8,8 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
-import org.benetech.authenticon.api.encoders.iconmap.IconMap10GroupsHandler;
-import org.benetech.authenticon.api.encoders.iconmap.IconMap14GroupsHandler;
-import org.benetech.authenticon.api.encoders.liang.AudioHandler;
+import org.benetech.authenticon.api.encoders.iconmap.IconMapGroupsHandler;
+import org.benetech.authenticon.api.encoders.audio.AudioHandler;
 import org.benetech.authenticon.api.encoders.threeicons.ThreeIconsHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -130,11 +129,8 @@ public class VisualizeFingerprintController {
 		if (methodUrl.startsWith("encoders/threeicons/ThreeIconsHandler"))
 			return new ThreeIconsHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
 		
-		if (methodUrl.startsWith("encoders/iconmap/10IconMapHandler"))
-			return new IconMap10GroupsHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
-		
-		if (methodUrl.startsWith("encoders/iconmap/14IconMapHandler"))
-			return new IconMap14GroupsHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
+		if (methodUrl.startsWith("encoders/iconmap/IconMapHandler"))
+			return new IconMapGroupsHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
 		
 		if (methodUrl.startsWith("encoders/iconmap/Audio"))
 			return new AudioHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);

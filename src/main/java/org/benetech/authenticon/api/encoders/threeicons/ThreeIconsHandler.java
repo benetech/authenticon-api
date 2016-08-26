@@ -16,6 +16,7 @@ public class ThreeIconsHandler extends AbstractIconMapper {
 
 	public ResponseEntity<?> visualizeIcons(String methodUrl, JSONObject encodingMethod, String fingerprint, String part) throws Exception 
 	{
+		fingerprint = padFingerprint(fingerprint,3);
 		JSONObject iconsJson = VisualizeFingerprintController.loadJsonFile("icons.json");
 		ArrayList<String> allIconNames = new ArrayList<String>();
 		allIconNames.addAll(iconsJson.keySet());
@@ -70,6 +71,7 @@ public class ThreeIconsHandler extends AbstractIconMapper {
 	
 	private ArrayList<String> getIconNamesForFingerprint(String fingerprint, ArrayList<String> allIconNames) 
 	{
+		fingerprint = padFingerprint(fingerprint,3);
 		ArrayList<String> imagesForFingerprint = VisualizeFingerprintController.getIconNamesForFingerprint(fingerprint);
 		if (imagesForFingerprint.isEmpty())
 		{
@@ -80,6 +82,17 @@ public class ThreeIconsHandler extends AbstractIconMapper {
 		}
 	
 		return imagesForFingerprint;
+	}
+	
+	private String padFingerprint(String fingerprint, int groupCount) {
+		int remainder = (int) fingerprint.length() % groupCount;
+		if (remainder == 1) {
+			fingerprint = new StringBuilder(fingerprint).insert(fingerprint.length()-1, "00").toString();
+		} else if (remainder == 2) {
+			fingerprint = new StringBuilder(fingerprint).insert(fingerprint.length()-2, "0").toString();
+		}
+		
+		return fingerprint.toUpperCase();
 	}
 	
 	private ArrayList<String> getRandomIconNames(int number, ArrayList<String> allImageNames) 
