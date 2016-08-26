@@ -1,7 +1,10 @@
 package org.benetech.authenticon.api.encoders.iconmap;
 
 import java.awt.Color;
-import java.awt.Image;
+import java.awt.Graphics2D;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,32 +16,24 @@ import javax.imageio.ImageIO;
 
 import org.springframework.core.io.ClassPathResource;
 
-import sun.awt.image.ToolkitImage;
 
 abstract public class AbstractIconMapper {
 
-	private static final int IMAGE_WIDTH = 90;
-	private static final int IMAGE_HEIGHT = 75;
-	private static final int BUFFER_BETWEEN_ICONS = 20;
+	private static final int IMAGE_WIDTH = 100;
+	private static final int IMAGE_HEIGHT = 100;
+	private static final int BUFFER_BETWEEN_ICONS = 10;
 	
-	protected InputStream renderSingleImageFromPaths(ArrayList<String> imageFileNames) throws Exception {
+	protected InputStream renderSingleImageFromPaths(ArrayList<String> imageFileNames, String methodUrl) throws Exception {
 		BufferedImage resultImage = createResultsImage(imageFileNames);
 		int x = 0; 
 		int y = 0;
-		for (String iconFileName : imageFileNames) 
+		int imageCount = imageFileNames.size();
+		for (int i = 0; i < imageCount; i++) 
 		{
-			ToolkitImage scaledDownImage = getScaledDownBufferedImage(iconFileName);
+			BufferedImage scaledDownImage = getScaledDownBufferedImage(imageFileNames.get(i));
+			x = (i%(getImageColumnCount()))*(IMAGE_WIDTH+BUFFER_BETWEEN_ICONS);	
+			y = ((int) Math.floor((double)i/getImageColumnCount())*(scaledDownImage.getHeight()+BUFFER_BETWEEN_ICONS));	
 			resultImage.getGraphics().drawImage(scaledDownImage, x, y, Color.WHITE, null);
-			
-			int moveXByAmount = resultImage.getWidth() / getImageColumnCount();
-			x += moveXByAmount;
-			
-			boolean shouldCreateNewRow = (x + scaledDownImage.getWidth()) > resultImage.getWidth();
-			if(shouldCreateNewRow){
-				x = 0;
-				y += scaledDownImage.getHeight();
-				y += BUFFER_BETWEEN_ICONS;
-			}
 		}
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -50,22 +45,63 @@ abstract public class AbstractIconMapper {
 		return new ByteArrayInputStream(byteArray);
 	}
 	
+	protected InputStream renderSingleImageFromPaths(ArrayList<String> imageFileNames, String methodUrl, ArrayList<String> iconDescs) throws Exception {
+		BufferedImage resultImage = createResultsImage(imageFileNames);
+		int x = 0; 
+		int y = 0;
+		int imageCount = imageFileNames.size();
+		for (int i = 0; i < imageCount; i++) 
+		{
+			BufferedImage scaledDownImage = getScaledDownBufferedImage(imageFileNames.get(i));
+			x = (i%(getImageColumnCount()))*(IMAGE_WIDTH+BUFFER_BETWEEN_ICONS);	
+			y = ((int) Math.floor((double)i/getImageColumnCount())*(scaledDownImage.getHeight()+BUFFER_BETWEEN_ICONS));	
+			resultImage.getGraphics().drawImage(scaledDownImage, x, y, Color.WHITE, null);
+			Graphics2D g2d = resultImage.createGraphics();
+	        g2d.drawImage(resultImage, 0, 0, null);
+	        g2d.setPaint(Color.blue);
+	        g2d.setFont(new Font("SansSerif", Font.BOLD, 12));
+	        String s = iconDescs.get(i);
+	        FontMetrics fm = g2d.getFontMetrics();
+	        int tx = fm.stringWidth(s);
+	        int ty = fm.getMaxDescent();
+	        g2d.drawString(s, x+(IMAGE_WIDTH)-tx, y+IMAGE_HEIGHT-ty);
+	        g2d.dispose();
+		}
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		ImageIO.write(resultImage, "png", outputStream);
+
+		byte[] byteArray = outputStream.toByteArray();
+		outputStream.close();
+		
+		return new ByteArrayInputStream(byteArray);
+	}
+	
+	
 	private BufferedImage createResultsImage(ArrayList<String> imageFileNames) {
-		int resultImageWidth = (getImageColumnCount() * IMAGE_WIDTH) + (BUFFER_BETWEEN_ICONS * getImageColumnCount());
+		int resultImageWidth = (getImageColumnCount() * IMAGE_WIDTH) + (BUFFER_BETWEEN_ICONS * (getImageColumnCount()-1));
 		int imageCount = imageFileNames.size();
 		int roundedUpNumberOfRows = (int) Math.ceil((double)imageCount / getImageColumnCount());
-		int resultImageHeight = (roundedUpNumberOfRows * IMAGE_HEIGHT) + (BUFFER_BETWEEN_ICONS * roundedUpNumberOfRows);
+		int resultImageHeight = (roundedUpNumberOfRows * IMAGE_HEIGHT) + (BUFFER_BETWEEN_ICONS * (roundedUpNumberOfRows-1));
 		
 		return new BufferedImage(resultImageWidth, resultImageHeight, BufferedImage.TYPE_INT_ARGB);
 	}
 	
-	private ToolkitImage getScaledDownBufferedImage(String iconFileName) throws IOException {
+	private BufferedImage getScaledDownBufferedImage(String iconFileName) throws IOException {
 		ClassPathResource classPathResource = new ClassPathResource(getIconDirectory() + iconFileName);
 		InputStream inputStream = classPathResource.getInputStream();
-		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		BufferedImage original = ImageIO.read(inputStream);
 		inputStream.close();
 		
-		return (ToolkitImage) bufferedImage.getScaledInstance(IMAGE_WIDTH, IMAGE_HEIGHT, Image.SCALE_SMOOTH);
+		BufferedImage resized = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT, original.getType());
+		Graphics2D g = resized.createGraphics();
+		RenderingHints rh = new RenderingHints(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		g.setRenderingHints(rh);
+		g.drawImage(original, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT, 0, 0, original.getWidth(), original.getHeight(), null);
+		g.dispose();
+		
+		
+		return (BufferedImage) resized;
 	}
 
 	abstract protected String getIconDirectory();

@@ -29,20 +29,23 @@ public class ThreeIconsHandler extends AbstractIconMapper {
 		if (methodUrl.endsWith("textOnly=true")) 
 			return createTextOnlyResponse(matchingIconNames);
 		else 
-			return create3IconResponse(iconsJson, matchingIconNames);
+			return create3IconResponse(iconsJson, matchingIconNames, methodUrl);
 	}
 
-	private ResponseEntity<?> create3IconResponse(JSONObject iconsJson, ArrayList<String> matchingIconNames) throws Exception 
+	private ResponseEntity<?> create3IconResponse(JSONObject iconsJson, ArrayList<String> matchingIconNames, String methodUrl) throws Exception 
 	{
 		ArrayList<String> iconPaths = new ArrayList<String>();
-		for (String iconName : matchingIconNames) 
+		ArrayList<String> iconDescs = new ArrayList<String>();
+		for (String iconName : matchingIconNames)
 		{
 			JSONObject json = iconsJson.optJSONObject(iconName);
 			String iconFileName = json.getString("filename");
+			String iconDesc = iconName;
 			iconPaths.add(iconFileName);
+			iconDescs.add(iconDesc);
 		}
 
-		InputStream imageInputStream = renderSingleImageFromPaths(iconPaths);
+		InputStream imageInputStream = renderSingleImageFromPaths(iconPaths, methodUrl,iconDescs);
 
 		return ResponseEntity
 				.ok()

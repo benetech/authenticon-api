@@ -10,7 +10,7 @@ import java.util.Set;
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 import org.benetech.authenticon.api.encoders.iconmap.IconMap10GroupsHandler;
 import org.benetech.authenticon.api.encoders.iconmap.IconMap14GroupsHandler;
-import org.benetech.authenticon.api.encoders.liang.LiangHandler;
+import org.benetech.authenticon.api.encoders.liang.AudioHandler;
 import org.benetech.authenticon.api.encoders.threeicons.ThreeIconsHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -74,7 +74,10 @@ public class VisualizeFingerprintController {
 			        .body(returnEncodingMethods());
 		}
 		else if (fingerprint == null && method != null) 
-			return returnEncodingMethodInfo(method);
+			return ResponseEntity
+					.ok()
+			        .contentType(MediaType.parseMediaType("application/json"))
+			        .body(returnEncodingMethodInfo(method));
 		
 		else if (fingerprint != null && method != null) 
 			return redirectTo(method, fingerprint, part);
@@ -103,18 +106,15 @@ public class VisualizeFingerprintController {
 		return encodingMethodsArray.toString();		
 	}
 	
-	private ResponseEntity<?> returnEncodingMethodInfo(String method) throws Exception
+	private String returnEncodingMethodInfo(String method) throws Exception
 	{
-		throw new Exception("-------------------------- returnEncodingMethodInfo has not been implemented! method = " + method);
-//		global $encodingMethods;
-//		header("Content-Type: application/json");
-//		$encodingMethod = $encodingMethods[$method];
-//		if ($encodingMethod == null)
-//			$encodingMethod = array(
-//				"description" => "Error. No such method as "".$method.""",
-//				"parts" => 0
-//			);
-//		echo json_encode($encodingMethod);
+		JSONObject jsonEncodingMethods = getEncodingMethods();
+		JSONObject encodingMethodsDescription = new JSONObject();
+		
+		JSONObject jsonEncodingMethod = (JSONObject) jsonEncodingMethods.get(method);
+		encodingMethodsDescription.put("description", jsonEncodingMethod.get("description"));
+		
+		return encodingMethodsDescription.toString();	
 	}
 	
 	private ResponseEntity<?> redirectTo(String method, String fingerprint, String part) throws Exception 
@@ -136,8 +136,8 @@ public class VisualizeFingerprintController {
 		if (methodUrl.startsWith("encoders/iconmap/14IconMapHandler"))
 			return new IconMap14GroupsHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
 		
-		if (methodUrl.startsWith("encoders/iconmap/LiangHandler"))
-			return new LiangHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
+		if (methodUrl.startsWith("encoders/iconmap/Audio"))
+			return new AudioHandler().visualizeIcons(methodUrl, encodingMethod, fingerprint, part);
 
 		return ResponseEntity.noContent().build(); 
 	}

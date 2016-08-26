@@ -13,11 +13,11 @@
       "type":"image",
       "url":"encoders/iconmap/14IconMapHandler"
    },
-   "liang":{
-      "name":"Liang Hashing",
-      "description":"Makes three progressively longer sequences to be checked so that faiures are spotted sooner.",
-      "parts":3,
-      "type":"text",
-      "url":"encoders/iconmap/LiangHandler"
+   "audio":{
+      "name":"Audio",
+      "description":"Makes audio representation of the fingerprint.",
+      "parts":1,
+      "type":"audio",
+      "url":"encoders/iconmap/Audio"
    },
 }

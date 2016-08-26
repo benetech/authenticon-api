@@ -1,46 +1,30 @@
 package org.benetech.authenticon.api.encoders.iconmap;
-
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-
-import javax.imageio.ImageIO;
-
 import org.json.JSONObject;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import sun.awt.image.ToolkitImage;
 
 abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 
-	private static final int COLUMN_COUNT = 4;
-	private static final int IMAGE_WIDTH = 90;
-	private static final int IMAGE_HEIGHT = 75;
-	private static final int BUFFER_BETWEEN_ICONS = 20;
+	private static final int COLUMN_COUNT = 6;
 
 	public ResponseEntity<?> visualizeIcons(String methodUrl, JSONObject encodingMethod, String fingerprint, String part) throws Exception {
 
-		int groupCount = calculateNumberOfGroups(fingerprint);
+		int groupCount = 3;
 		ArrayList<String> allIconFileNames = generateIconFileNames(10000);
 		ArrayList<String> groupedFingerprint = getFingerprintGroups(fingerprint, groupCount);
 		ArrayList<String> matchingIconFilenames = matchGroupToIconFilename(allIconFileNames, groupedFingerprint);
 		
-		InputStream imageInputStream = renderSingleImageFromPaths(matchingIconFilenames);
+		InputStream imageInputStream = renderSingleImageFromPaths(matchingIconFilenames, methodUrl);
 
 		return ResponseEntity
 				.ok()
 				.contentLength(imageInputStream.available())
 				.contentType(MediaType.IMAGE_PNG)
 				.body(new InputStreamResource(imageInputStream));
-	}
-
-	private int calculateNumberOfGroups(String fingerprint) {
-		return (int) Math.ceil((double)fingerprint.length() / getMappingCount());
 	}
 	
 	private ArrayList<String> matchGroupToIconFilename(ArrayList<String> allIconFileNames, ArrayList<String> groupedFingerprints) {
@@ -68,12 +52,12 @@ abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 		String paddedFingerprint = padFingerprintToBeCreateEventNumberedGroups(fingerprint, groupCount);		
 		ArrayList<String> fingerprintGroups = splitFingerprintIntoGroups(paddedFingerprint, groupCount);
 		
-		verifyGroupingWasSuccessfull(paddedFingerprint, fingerprintGroups);
+		verifyGroupingWasSuccessful(paddedFingerprint, fingerprintGroups);
 
 		return fingerprintGroups;
 	}
 
-	private void verifyGroupingWasSuccessfull(String paddedFingerprint, ArrayList<String> fingerprintGroups) throws Exception {
+	private void verifyGroupingWasSuccessful(String paddedFingerprint, ArrayList<String> fingerprintGroups) throws Exception {
 		StringBuffer assembledFromGroupsFingerprint = new StringBuffer(); 
 		for (String fingerprintGroup : fingerprintGroups) {
 			assembledFromGroupsFingerprint.append(fingerprintGroup);
@@ -84,10 +68,11 @@ abstract public class AbstractIconMapHandler extends AbstractIconMapper{
 	}
 
 	private String padFingerprintToBeCreateEventNumberedGroups(String fingerprint, int groupCount) {
-		int numberOfGroups = (int)Math.ceil((double)fingerprint.length() / groupCount);
-		final String PADDING_VALUE = "0";
-		while (fingerprint.length() < (numberOfGroups * groupCount)) {
-			fingerprint = fingerprint + PADDING_VALUE;
+		int remainder = (int) fingerprint.length() % groupCount;
+		if (remainder == 1) {
+			fingerprint = new StringBuilder(fingerprint).insert(fingerprint.length()-1, "00").toString();
+		} else if (remainder == 2) {
+			fingerprint = new StringBuilder(fingerprint).insert(fingerprint.length()-2, "0").toString();
 		}
 		
 		return fingerprint;
